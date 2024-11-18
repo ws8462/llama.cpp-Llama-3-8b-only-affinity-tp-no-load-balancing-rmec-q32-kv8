@@ -18880,10 +18880,12 @@ enum ggml_status ggml_graph_compute(struct ggml_cgraph * cgraph, struct ggml_cpl
                 .shared = &state_shared,
             };
             // CPU AFFINITY 수정
-            // cpu_set_t set;
-            // CPU_ZERO(&set);
-            // CPU_SET(omp_get_thread_num() + 4, &set);
-            // sched_setaffinity(0, sizeof(cpu_set_t), &set);
+            cpu_set_t set;
+            CPU_ZERO(&set);
+            // 현재 스레드 ID를 가져오고 이를 5번과 6번 코어로 매핑
+            int core_id = 5 + (omp_get_thread_num() % 2);  // 스레드 ID를 5 또는 6으로 제한
+            CPU_SET(omp_get_thread_num() + 4, &set);
+            sched_setaffinity(0, sizeof(cpu_set_t), &set);
             ggml_graph_compute_thread(&worker);
         }
     } else {
